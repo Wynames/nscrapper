@@ -4,6 +4,8 @@
 
 <h2>🍑 QrtzNeko API</h2>
 
+<img src="https://i.postimg.cc/Dy3twC9Z/qrtzneko.gif" width="100%" style="border-radius:24px" alt="qrtzneko" />
+
 <p><strong>Unofficial REST API for <a href="https://nekopoi.care">NekoPoi.care</a></strong><br/>
 Scrape, search, stream, and explore hentai subtitle Indonesia — all in one clean API.</p>
 
