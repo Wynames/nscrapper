@@ -7,32 +7,48 @@ module.exports = async (req, res) => {
 
   try {
     const { data } = await axios.get(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 12)' },
-      validateStatus: () => true
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+      },
+      timeout: 15000,
     });
 
-    if (typeof data === 'object' && !Array.isArray(data)) {
+    if (!data || typeof data !== 'string') {
       return res.json({ success: true, data: [] });
     }
 
     const $ = cheerio.load(data);
     const episodes = [];
+    const seen = new Set();
 
-    $('a[href*="/episode/"], a[href*="/videos/"]').each((i, el) => {
+    const addEpisode = (href, text) => {
+      if (!href || !text || text.length < 3) return;
+      if (text.toLowerCase().includes('download')) return;
+      if (seen.has(href)) return;
+      seen.add(href);
+      episodes.push({ title: text.trim(), url: href });
+    };
+
+    $('a[href*="/videos/"], a[href*="/episode/"], a[href*="/hentai/"]').each((i, el) => {
       const href = $(el).attr('href');
       const text = $(el).text().trim();
-      if (href && text && !text.toLowerCase().includes('download')) {
-        episodes.push({ title: text, url: href });
-      }
+      addEpisode(href, text);
     });
 
     if (episodes.length === 0) {
-      $('.entry-content a').each((i, el) => {
+      $('ul li a, ol li a, table a, .episodes-list a, .chapter-list a, .series-list a').each((i, el) => {
         const href = $(el).attr('href');
         const text = $(el).text().trim();
-        if (href && text && text.length > 3) {
-          episodes.push({ title: text, url: href });
-        }
+        addEpisode(href, text);
+      });
+    }
+
+    if (episodes.length === 0) {
+      $('.entry-content a, .post-content a, article a, main a').each((i, el) => {
+        const href = $(el).attr('href');
+        const text = $(el).text().trim();
+        addEpisode(href, text);
       });
     }
 
