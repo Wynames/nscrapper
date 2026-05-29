@@ -3,7 +3,25 @@ const axios = require('axios');
 
 module.exports = async (req, res) => {
   try {
-    const { page = 1, type = 'home', letter = '', category = '' } = req.query;
+    const { page = 1, type = 'home', letter = '', category = '', search = '' } = req.query;
+
+    if (search) {
+      const wpUrl = `https://nekopoi.care/wp-json/wp/v2/posts?search=${encodeURIComponent(search)}&page=${page}&per_page=20&_embed`;
+      const wpResp = await axios.get(wpUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        timeout: 10000,
+        validateStatus: () => true,
+      });
+      if (wpResp.status === 200 && Array.isArray(wpResp.data)) {
+        const posts = wpResp.data.map(post => ({
+          title: post.title?.rendered || '',
+          url: post.link || '',
+          poster: post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '',
+        }));
+        return res.json({ success: true, data: posts, meta: { url: wpUrl, count: posts.length } });
+      }
+      return res.json({ success: true, data: [] });
+    }
 
     let url;
     if (type === 'hentai-list') {
@@ -23,7 +41,7 @@ module.exports = async (req, res) => {
     let items = [];
     const wpCategory = category || '';
     const wpPage = page;
-    
+
     try {
       let apiUrl;
       if (type === 'hentai-list' || type === 'jav-list' || type === 'az-list') {
@@ -37,18 +55,17 @@ module.exports = async (req, res) => {
       const wpResp = await axios.get(apiUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 12)' },
         timeout: 10000,
-        validateStatus: () => true
+        validateStatus: () => true,
       });
 
       if (wpResp.status === 200 && Array.isArray(wpResp.data)) {
         items = wpResp.data.map(post => ({
           title: post.title?.rendered || post.title || '',
           url: post.link || '',
-          poster: post.jetpack_featured_media_url || post._embedded?.['wp:featuredmedia']?.[0]?.source_url || ''
+          poster: post.jetpack_featured_media_url || post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '',
         }));
       }
-    } catch (e) {
-    }
+    } catch (e) {}
 
     if (items.length === 0) {
       const $ = await fetchHTML(url);
@@ -58,7 +75,7 @@ module.exports = async (req, res) => {
     res.json({
       success: true,
       data: items,
-      meta: { url, count: items.length }
+      meta: { url, count: items.length },
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -71,7 +88,7 @@ function getCategoryId(slug) {
     '2d-hentai': 80,
     '3d-hentai': 81,
     'jav': 5,
-    'jav-cosplay': 386
+    'jav-cosplay': 386,
   };
   return map[slug] || slug;
 }
