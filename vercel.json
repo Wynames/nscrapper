@@ -1,5 +1,15 @@
 {
   "version": 2,
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "devCommand": "vite",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
   "functions": {
     "api/stream.js": {
       "maxDuration": 30
