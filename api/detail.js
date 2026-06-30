@@ -1,8 +1,17 @@
-const { fetchHTML } = require('../lib/scraper');
+// api/detail.js
+import { fetchHTML } from '../lib/scraper.js'; // pastikan path dan ekstensi .js sesuai
+import { isAllowed } from './_lib/whitelist.js';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
+  // 🔒 Cek whitelist
+  if (!isAllowed(req)) {
+    return res.status(403).json({ error: 'Akses ditolak (whitelist)' });
+  }
+
   const { url } = req.query;
-  if (!url) return res.status(400).json({ success: false, error: 'URL diperlukan' });
+  if (!url) {
+    return res.status(400).json({ success: false, error: 'URL diperlukan' });
+  }
 
   try {
     const $ = await fetchHTML(url);
@@ -24,4 +33,4 @@ module.exports = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
-};
+}
