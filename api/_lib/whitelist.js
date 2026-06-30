@@ -1,8 +1,7 @@
 // api/_lib/whitelist.js
 const allowedOrigins = [
-  'xupi.my.id',                // domain web utama Manhwa Scraper
+  'xupi.my.id',
 //  'www.xupi.my.id',
-//  '7u7-neko.vercel.app',       // domain web 7u7 Neko itu sendiri (biar bisa diakses langsung juga)
   // tambahkan domain lain jika perlu
 ];
 
